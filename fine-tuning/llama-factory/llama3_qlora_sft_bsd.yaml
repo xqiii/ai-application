@@ -36,8 +36,8 @@ save_only_model: false  # 是否只保存模型权重（false 则同时保存优
 report_to: none  # 日志上报平台：none / wandb / tensorboard
 
 ### train
-per_device_train_batch_size: 4  # 每张 GPU 的训练 batch size，4090D 24G + QLoRA + cutoff_len=1024 可支持 4
-gradient_accumulation_steps: 4  # 梯度累积步数，等效 batch = 4 × 4 = 16，训练更稳定
+per_device_train_batch_size: 2  # 每张 GPU 的训练 batch size，4090D 24G + QLoRA
+gradient_accumulation_steps: 8  # 梯度累积步数，等效 batch = 2 × 8 = 16，训练更稳定
 learning_rate: 2.0e-4  # 学习率，QLoRA 常用 1e-4 ~ 3e-4
 max_steps: 2000  # 最大训练步数（优先级高于 num_train_epochs）
 lr_scheduler_type: linear  # 学习率调度策略：linear（线性衰减）/ cosine（余弦退火）/ constant
