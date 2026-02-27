@@ -1,0 +1,5 @@
+model_name_or_path: LLM-Research/Meta-Llama-3-8B-Instruct
+adapter_name_or_path: saves/llama3-8b-qlora-chat/sft
+template: llama3
+infer_backend: huggingface  # choices: [huggingface, vllm, sglang, ktransformers]
+trust_remote_code: true

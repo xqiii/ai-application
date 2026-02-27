@@ -1,0 +1,26 @@
+{
+  "dialogsum_train": {
+    "file_name": "dialogsum_train.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output"
+    }
+  },
+  "dialogsum_validation": {
+    "file_name": "dialogsum_validation.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output"
+    }
+  },
+  "dialogsum_test": {
+    "file_name": "dialogsum_test.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output"
+    }
+  }
+}
