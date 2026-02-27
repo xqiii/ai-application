@@ -6,10 +6,11 @@ trust_remote_code: true  # 允许加载模型仓库中的自定义代码
 stage: sft  # 训练阶段：sft（监督微调）/ pt（预训练）/ rm（奖励模型）/ ppo / dpo
 do_train: true  # 是否执行训练
 finetuning_type: lora  # 微调方式：lora / full（全参数微调）/ freeze（冻结部分层）
-lora_rank: 64  # LoRA 低秩矩阵的秩，值越大可学习参数越多，常用 8/16/32/64
+lora_rank: 8  # LoRA 低秩矩阵的秩，值越大可学习参数越多，常用 8/16/32/64
 lora_alpha: 16  # LoRA 缩放系数，实际缩放比 = alpha/rank，影响 LoRA 更新幅度
 lora_target: q_proj,k_proj,v_proj,o_proj  # 插入 LoRA 适配器的目标模块（注意力层），可扩展 gate_proj,up_proj,down_proj
-lora_dropout: 0.01  # LoRA 层的 Dropout 概率，防止过拟合，一般 0.01~0.1
+weight_decay: 0.01            # 添加权重衰减，抑制过拟合
+lora_dropout: 0.1  # LoRA 层的 Dropout 概率，防止过拟合，一般 0.01~0.1
 
 ### quantization (QLoRA: 4-bit NF4 + double quantization)
 quantization_bit: 4  # 量化位数：4-bit 或 8-bit，越低显存越省但精度越低
@@ -38,10 +39,11 @@ report_to: none  # 日志上报平台：none / wandb / tensorboard
 ### train
 per_device_train_batch_size: 2  # 每张 GPU 的训练 batch size，4090D 24G + QLoRA
 gradient_accumulation_steps: 8  # 梯度累积步数，等效 batch = 2 × 8 = 16，训练更稳定
-learning_rate: 2.0e-4  # 学习率，QLoRA 常用 1e-4 ~ 3e-4
-max_steps: 2000  # 最大训练步数（优先级高于 num_train_epochs）
-lr_scheduler_type: linear  # 学习率调度策略：linear（线性衰减）/ cosine（余弦退火）/ constant
-warmup_steps: 1  # 学习率预热步数，从 0 线性增长到目标学习率，建议为总步数的 3%~10%
+learning_rate: 2.0e-5  # 学习率，QLoRA 常用 1e-4 ~ 3e-4
+max_steps: -1  # 最大训练步数（优先级高于 num_train_epochs）
+num_train_epochs: 1
+lr_scheduler_type: cosine  # 学习率调度策略：linear（线性衰减）/ cosine（余弦退火）/ constant
+warmup_steps: 10  # 学习率预热步数，从 0 线性增长到目标学习率，建议为总步数的 3%~10%
 optim: paged_adamw_8bit  # 优化器：paged_adamw_8bit（QLoRA 标配，8-bit 分页 AdamW，节省显存）
 fp16: true  # 使用 FP16 混合精度训练（A100 等可改用 bf16: true）
 gradient_checkpointing: true  # 梯度检查点：用计算时间换显存，训练大模型时建议开启
@@ -51,6 +53,10 @@ seed: 42  # 随机种子，保证训练可复现
 ### eval
 # val_size: 0.2  # 验证集比例，从训练集中划分 20% 作为验证集
 eval_dataset: dialogsum_test  # 使用独立的测试数据集进行评估（需在 dataset_info.json 中注册）
-per_device_eval_batch_size: 1  # 每张 GPU 的评估 batch size
+per_device_eval_batch_size: 4  # 每张 GPU 的评估 batch size
 eval_strategy: steps  # 评估策略：steps（按步数）/ epoch（按轮次）
-eval_steps: 100  # 每隔多少步执行一次评估（配合 eval_strategy: steps）
+eval_steps: 50  # 每隔多少步执行一次评估（配合 eval_strategy: steps）
+
+load_best_model_at_end: true       # 训练结束加载最佳模型
+metric_for_best_model: loss        # 以 eval_loss 为标准
+save_total_limit: 2               # 只保留最好的 2 个 checkpoint

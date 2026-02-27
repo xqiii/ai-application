@@ -32,8 +32,19 @@ def create_prompt_formats(sample: dict) -> dict:
     }
 
 
-def convert_split(dataset_split) -> list[dict]:
-    return [create_prompt_formats(sample) for sample in dataset_split]
+def convert_split(dataset_split, deduplicate: bool = False) -> list[dict]:
+    records = [create_prompt_formats(sample) for sample in dataset_split]
+    if deduplicate:
+        seen = set()
+        unique_records = []
+        for r in records:
+            if r["input"] not in seen:
+                seen.add(r["input"])
+                unique_records.append(r)
+        if len(unique_records) < len(records):
+            print(f"  去重: {len(records)} -> {len(unique_records)} 条（移除 {len(records) - len(unique_records)} 条重复）")
+        records = unique_records
+    return records
 
 
 def main():
@@ -70,7 +81,7 @@ def main():
             print(f"跳过不存在的 split: {split}")
             continue
 
-        records = convert_split(dataset[split])
+        records = convert_split(dataset[split], deduplicate=(split in ("test", "validation")))
         output_file = output_dir / f"dialogsum_{split}.json"
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump(records, f, ensure_ascii=False, indent=2)
